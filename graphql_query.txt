@@ -1,0 +1,571 @@
+# Write your query or mutation here
+query GetProductDetails($id: ID!) {
+  product(id: $id) {
+    id
+    name
+    description
+    slug
+    customFields {
+      landing
+      # Add any other custom fields here as needed
+    }
+    optionGroups {
+      id
+      name
+      code
+      options {
+        id
+        name
+        code
+      }
+    }
+    variants {
+      id
+      name
+      priceWithTax
+      stockLevel
+      sku
+      currencyCode
+      options {
+        id
+        name
+        groupId
+        code
+      }
+    }
+    collections {
+      slug
+      name
+      parent {
+        slug
+      }
+    }
+    assets {
+      source
+      preview
+    }
+    featuredAsset {
+      source
+      preview
+    }
+    facetValues {
+      name
+      code
+    }
+  }
+}
+
+
+{
+  "id": 54
+}
+
+
+give me an guideline to implement a landing customer attribute of product page that will display an tinymce editor an saves it in postgres database:
+customFields: {
+        Product: [
+            {
+                name: 'landing',
+                type: 'string', // Use 'string' to store rich text content
+                ui: { component: 'landing-form-input' },
+                public: true
+            },
+        ],
+    },
+its working.
+now i need to display it typescript zeus graphql baked nextjs framework in product page after description 
+export const ProductDetailSelector = Selector('Product')({
+    name: true,
+    description: true,
+    id: true,
+    customFields: {
+        landing: true
+    },
+    slug: true,
+    optionGroups: {
+        name: true,
+        id: true,
+        code: true,
+        options: {
+            name: true,
+            id: true,
+            code: true,
+        },
+    },
+    assets: {
+        source: true,
+        preview: true,
+    },
+    variants: {
+        id: true,
+        name: true,
+        currencyCode: true,
+        priceWithTax: true,
+        stockLevel: true,
+        sku: true,
+        options: {
+            id: true,
+            groupId: true,
+            code: true,
+            name: true,
+        },
+    },
+    collections: { slug: true, name: true, parent: { slug: true } },
+    featuredAsset: {
+        source: true,
+        preview: true,
+    },
+
+    facetValues: ProductDetailsFacetSelector,
+});
+
+export type ProductDetailType = FromSelector<typeof ProductDetailSelector, 'Product', typeof scalars>;
+added 
+customFields: {
+        landing: true
+    },
+its getting data from database 
+src\components\pages\products:
+src\components\molecules\ProductDescription.tsx:
+import React, { useState } from 'react';
+import { Stack, TP } from '@/src/components/atoms';
+import styled from '@emotion/styled';
+import { MinusIcon, PlusIcon } from 'lucide-react';
+
+export const ProductDescription: React.FC<{
+    data: { title: string; children: React.ReactNode }[];
+    defaultOpenIndexes?: number[];
+}> = ({ data, defaultOpenIndexes }) => {
+    const [open, setOpen] = useState<Record<string, boolean>>(
+        data.reduce((acc, key) => {
+            if (defaultOpenIndexes?.includes(data.indexOf(key))) return { ...acc, [key.title]: true };
+            return { ...acc, [key.title]: false };
+        }, {}),
+    );
+
+    return (
+        <Stack w100 column gap="2rem" style={{ marginTop: '3.5rem' }}>
+            {data.map((entry, index) => (
+                <GridWrapper key={index} w100 column>
+                    <GridTitle onClick={() => setOpen({ ...open, [entry.title]: !open[entry.title] })}>
+                        <TP size="1.5rem" weight={400}>
+                            {entry.title}
+                        </TP>
+                        {open[entry.title] ? <MinusIcon size="1.5rem" /> : <PlusIcon size="1.5rem" />}
+                    </GridTitle>
+                    <Grid open={open[entry.title]}>
+                        <GridEntry>{entry.children}</GridEntry>
+                    </Grid>
+                    <Line />
+                </GridWrapper>
+            ))}
+        </Stack>
+    );
+};
+
+const Line = styled.div`
+    width: 100%;
+    height: 1px;
+    background-color: ${({ theme }) => theme.gray(100)};
+    margin-top: 2rem;
+`;
+
+const GridWrapper = styled(Stack)``;
+
+const Grid = styled.div<{ open: boolean }>`
+    display: grid;
+    grid-template-rows: ${({ open }) => (open ? '1fr' : '0fr')};
+    transition: grid-template-rows 0.3s ease-in-out;
+`;
+
+const GridTitle = styled.button`
+    width: 100%;
+    border: none;
+    background-color: transparent;
+    padding: 0;
+    cursor: pointer;
+
+    position: relative;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+`;
+
+const GridEntry = styled(Stack)`
+    overflow: hidden;
+`;
+src\components\pages\products\index.tsx:
+<ProductDescription
+                                defaultOpenIndexes={[1]}
+                                data={[
+                                    {
+                                        title: t('details'),
+                                        children: (
+                                            <Stack column style={{ marginTop: '1.5rem' }}>
+                                                <Stack>
+                                                    <TP color="subtitle">{t('sku')}</TP>
+                                                    <TP color="subtitle">&nbsp;{variant?.sku}</TP>
+                                                </Stack>
+                                                {variant?.options.length ? (
+                                                    <Stack column>
+                                                        {variant?.options.map(option => (
+                                                            <Stack key={option.code}>
+                                                                <TP color="subtitle">{option.name}</TP>
+                                                            </Stack>
+                                                        ))}
+                                                    </Stack>
+                                                ) : null}
+                                            </Stack>
+                                        ),
+                                    },
+                                    {
+                                        title: t('description'),
+                                        children: (
+                                            <TP color="subtitle" style={{ marginTop: '1.5rem' }}>
+                                                {product?.description}
+                                            </TP>
+                                        ),
+                                    },
+                                    // here i want to send landing page data obtained from graphql selector that working in shop-api 
+                                ]}
+                            /> 
+
+but in
+src\components\pages\products\props.ts:
+import { SSGQuery } from '@/src/graphql/client';
+import { ProductDetailSelector, homePageSlidersSelector } from '@/src/graphql/selectors';
+import { getCollections } from '@/src/graphql/sharedQueries';
+import { ContextModel, makeStaticProps } from '@/src/lib/getStatic';
+import { arrayToTree } from '@/src/util/arrayToTree';
+
+export const getStaticProps = async (context: ContextModel<{ slug?: string }>) => {
+    const r = await makeStaticProps(['common', 'products'])(context);
+    const language = r.props._nextI18Next?.initialLocale || 'en';
+    const { slug } = context.params || {};
+    const api = SSGQuery(r.context);
+
+    const response =
+        typeof slug === 'string'
+            ? await api({
+                  product: [{ slug }, ProductDetailSelector],
+              })
+            : null;
+
+    if (!response?.product) return { notFound: true };
+
+    const collections = await getCollections(r.context);
+    const navigation = arrayToTree(collections);
+
+    const relatedProducts = await api({
+        collection: [{ slug: response.product?.collections[0]?.slug || 'search' }, homePageSlidersSelector],
+    });
+    const clientsAlsoBought = await api({
+        collection: [{ slug: 'search' }, homePageSlidersSelector],
+    });
+
+    const { optionGroups: _optionGroups, ...product } = response.product;
+
+    // mapping option groups to match the color names <-> hex codes
+    // const getFacetsValues = await SSGQuery(r.context)({
+    //     facets: [{ options: { filter: { name: { eq: 'color' } } } }, { items: { values: { name: true, code: true } } }],
+    // });
+
+    const optionGroups = _optionGroups.map(og => {
+        return {
+            ...og,
+            options: og.options
+                .sort((a, b) => a.name.length - b.name.length || a.name.localeCompare(b.name))
+                .map(o => {
+                    // mapping option groups to match the color names <-> hex codes
+                    // const name =
+                    //     getFacetsValues.facets.items[0].values.find(v => v.name.toLowerCase() === o.code.toLowerCase())
+                    //         ?.code || o.name;
+
+                    const name =
+                        notInDemoStore.find(v => v.name.toLowerCase() === o.code.toLowerCase())?.code || o.name;
+                    return { ...o, name };
+                }),
+        };
+    });
+
+    const returnedStuff = {
+        ...r.props,
+        ...r.context,
+        slug: context.params?.slug,
+        product: {
+            ...product,
+            optionGroups,
+        },
+        collections,
+        relatedProducts,
+        clientsAlsoBought,
+        navigation,
+        language,
+    };
+
+    return {
+        props: returnedStuff,
+        revalidate: process.env.NEXT_REVALIDATE ? parseInt(process.env.NEXT_REVALIDATE) : 10,
+    };
+};
+
+//THIS IS NOT IN DEMO STORE - BUT MAKE SENSE TO KEEP IT LIKE THIS
+const notInDemoStore = [
+    { name: 'blue', code: '#0000FF' },
+    { name: 'pink', code: '#FFC0CB' },
+    { name: 'black', code: '#000000' },
+    { name: 'gray', code: '#808080' },
+    { name: 'brown', code: '#964B00' },
+    { name: 'wood', code: '#A1662F' },
+    { name: 'yellow', code: '#FFFF00' },
+    { name: 'green', code: '#008000' },
+    { name: 'white', code: '#FFFFFF' },
+    { name: 'red', code: '#FF0000' },
+    { name: 'mustard', code: '#FFDB58' },
+    { name: 'mint', code: '#98FF98' },
+    { name: 'pearl', code: '#FDEEF4' },
+];
+vs code saying:
+Type '{ name: true; description: true; id: true; customFields: { landing: boolean; }; slug: true; optionGroups: { name: true; id: true; code: true; options: { name: true; id: true; code: true; }; }; assets: { source: true; preview: true; }; variants: { ...; }; collections: { ...; }; featuredAsset: { ...; }; facetValues: {...' is not assignable to type 'AliasType<{ id?: boolean | `@${string}` | undefined; createdAt?: boolean | `@${string}` | undefined; updatedAt?: boolean | `@${string}` | undefined; languageCode?: boolean | `@${string}` | undefined; name?: boolean | ... 1 more ... | undefined; ... 11 more ...; __typename?: boolean | ... 1 more ... | undefined; }>'.
+  Type '{ name: true; description: true; id: true; customFields: { landing: boolean; }; slug: true; optionGroups: { name: true; id: true; code: true; options: { name: true; id: true; code: true; }; }; assets: { source: true; preview: true; }; variants: { ...; }; collections: { ...; }; featuredAsset: { ...; }; facetValues: {...' is not assignable to type '{ id?: boolean | `@${string}` | undefined; createdAt?: boolean | `@${string}` | undefined; updatedAt?: boolean | `@${string}` | undefined; languageCode?: boolean | `@${string}` | undefined; name?: boolean | ... 1 more ... | undefined; ... 11 more ...; __typename?: boolean | ... 1 more ... | undefined; }'.
+    Types of property 'customFields' are incompatible.
+      Type '{ landing: boolean; }' is not assignable to type 'boolean | `@${string}` | undefined'.ts(2322)
+(alias) const ProductDetailSelector: {
+    name: true;
+    description: true;
+    id: true;
+    customFields: {
+        landing: boolean;
+    };
+    slug: true;
+    optionGroups: {
+        name: true;
+        id: true;
+        code: true;
+        options: {
+            name: true;
+            id: true;
+            code: true;
+        };
+    };
+    assets: {
+        source: true;
+        preview: true;
+    };
+    variants: {
+        ...;
+    };
+    collections: {
+        ...;
+    };
+    featuredAsset: {
+        ...;
+    };
+    facetValues: {
+        ...;
+    };
+}
+import ProductDetailSelector
+& in browser product page showing this error:
+
+ 1 of 1 unhandled error
+Server Error
+SyntaxError: Unexpected token < in JSON at position 0
+
+This error happened while generating the page. Any console logs will be displayed in the terminal window.
+Source
+src\graphql\client.ts (13:37) @ parse
+
+  11 | JSON: {
+  12 |     encode: (e: unknown) => JSON.stringify(JSON.stringify(e)),
+> 13 |     decode: (e: unknown) => JSON.parse(e as string),
+     |                                 ^
+  14 | },
+  15 | DateTime: {
+  16 |     decode: (e: unknown) => new Date(e as string).toISOString(),
+Call Stack
+currentDecoder
+src\zeus\index.ts (317:23)
+ibb
+src\zeus\index.ts (323:62)
+map
+src\zeus\index.ts (323:42)
+ibb
+src\zeus\index.ts (323:62)
+map
+src\zeus\index.ts (323:42)
+initialOp
+src\zeus\index.ts (288:72)
+decodeScalarsInResponse
+src\zeus\index.ts (176:23)
+Show collapsed frames
+in http://localhost:3001/products/modern-cafe-chair/ 
+where in have put some customFieldsLanding data by using in vendure server
+src\plugins\landing-page\ui\providers.ts: 
+import { registerReactFormInputComponent } from '@vendure/admin-ui/react';
+import { LandingFormInput } from './components/LandingFormInput';
+
+export default [
+    registerReactFormInputComponent('landing-form-input', LandingFormInput),
+];
+
+src\plugins\landing-page\ui\components\LandingFormInput.tsx:
+// import React from 'react';
+import React, { useCallback , useRef} from 'react';
+import { Editor } from '@tinymce/tinymce-react';
+import { useFormControl, ReactFormInputOptions } from '@vendure/admin-ui/react';
+import { Editor as TinyMCEEditor } from 'tinymce';
+// import tinymce from 'tinymce';
+// import 'tinymce/icons/default';
+// import 'tinymce/themes/silver';
+// import 'tinymce/plugins/advlist';
+// import 'tinymce/plugins/autolink';
+// import 'tinymce/plugins/lists';
+// import 'tinymce/plugins/link';
+// import 'tinymce/plugins/image';
+// import 'tinymce/plugins/charmap';
+// import 'tinymce/plugins/print';
+// import 'tinymce/plugins/preview';
+// import 'tinymce/plugins/anchor';
+// import 'tinymce/plugins/searchreplace';
+// import 'tinymce/plugins/visualblocks';
+// import 'tinymce/plugins/code';
+// import 'tinymce/plugins/fullscreen';
+// import 'tinymce/plugins/insertdatetime';
+// import 'tinymce/plugins/media';
+// import 'tinymce/plugins/table';
+// import 'tinymce/plugins/paste';
+// import 'tinymce/plugins/help';
+// import 'tinymce/plugins/wordcount';
+
+export function LandingFormInput({ config }: ReactFormInputOptions) {
+    const { value, setFormValue } = useFormControl();
+    // const editorRef = useRef(null);
+    const editorRef = useRef<TinyMCEEditor | null>(null);
+
+    // const handleEditorChange = (content: string) => {
+    //     setFormValue(content);
+    // };
+    const handleEditorChange = useCallback((content: string) => {
+        setFormValue(content);
+    }, [setFormValue]);
+
+    const log = () => {
+        if (editorRef.current) {
+          console.log(editorRef.current.getContent());
+          setFormValue(editorRef.current.getContent())
+        }
+      };
+
+    return (
+        <>
+        <Editor
+        apiKey='d1hzqw9ym2dak60p72jjeq0iqypm8vtd44xtzwhv05kkp9r7'
+        onInit={(_evt, editor) => editorRef.current = editor}
+        // onEditorChange={handleEditorChange}
+        initialValue={value}
+        init={{
+          height: 500,
+          menubar: true,
+          plugins: [
+            'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+            'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+            'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+          ],
+          toolbar: 'undo redo | blocks | ' +
+            'bold italic forecolor | alignleft aligncenter ' +
+            'alignright alignjustify | bullist numlist outdent indent | ' +
+            'removeformat | help',
+          content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
+        }}
+      />
+      <button onClick={log}>Save editor content</button>
+      </>
+        // <Editor
+        //     apiKey='d1hzqw9ym2dak60p72jjeq0iqypm8vtd44xtzwhv05kkp9r7'
+        //     initialValue={value}
+        //     // init={{
+        //     //     height: 500,
+        //     //     menubar: true,
+        //     //     plugins: [
+        //     //         'advlist autolink lists link image charmap print preview anchor',
+        //     //         'searchreplace visualblocks code fullscreen',
+        //     //         'insertdatetime media table paste code help wordcount',
+        //     //         'media',
+        //     //         'image',
+        //     //         'imagetools',
+        //     //         'code',
+        //     //     ],
+        //     //     toolbar: 
+        //     //         'undo redo | formatselect | bold italic backcolor | \
+        //     //         alignleft aligncenter alignright alignjustify | \
+        //     //         bullist numlist outdent indent | removeformat | help | \
+        //     //         media image | code',
+        //     //     image_title: true,
+        //     //     automatic_uploads: true,
+        //     //     file_picker_types: 'image media',
+        //     //     file_picker_callback: function (cb, value, meta) {
+        //     //         let input = document.createElement('input');
+        //     //         input.setAttribute('type', 'file');
+        //     //         input.setAttribute('accept', meta.filetype === 'image' ? 'image/*' : 'media/*');
+
+        //     //         input.onchange = function () {
+        //     //             if (input.files && input.files.length > 0) {
+        //     //                 let file = input.files[0];
+        //     //                 let reader = new FileReader();
+        //     //                 reader.onload = function () {
+        //     //                     if (tinymce.activeEditor) { // Null check for activeEditor
+        //     //                         if (typeof reader.result === 'string') { // Ensure reader.result is a string
+        //     //                             let id = 'blobid' + (new Date()).getTime();
+        //     //                             let blobCache = tinymce.activeEditor.editorUpload.blobCache;
+        //     //                             let base64 = reader.result.split(',')[1];
+        //     //                             let blobInfo = blobCache.create(id, file, base64);
+        //     //                             blobCache.add(blobInfo);
+        //     //                             cb(blobInfo.blobUri(), { title: file.name });
+        //     //                         } else {
+        //     //                             console.error('FileReader result is not a string.');
+        //     //                         }
+        //     //                     } else {
+        //     //                         console.error('Editor is not available.');
+        //     //                     }
+        //     //                 };
+        //     //                 reader.readAsDataURL(file);
+        //     //             }
+        //     //         };
+
+        //     //         input.click();
+        //     //     },
+        //     //     ...config, // Spread any additional config passed in
+        //     // }}
+        //     init={{
+        //         height: 500,
+        //         menubar: true,
+        //         plugins: [
+        //           'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+        //           'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+        //           'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+        //         ],
+        //         toolbar: 'undo redo | blocks | ' +
+        //           'bold italic forecolor | alignleft aligncenter ' +
+        //           'alignright alignjustify | bullist numlist outdent indent | ' +
+        //           'removeformat | help',
+        //         content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
+        //       }}
+        //     onEditorChange={handleEditorChange}
+        // />
+    );
+}
+need to get this value in nextjs storefront & place it in // here section mentioned
+const { value, setFormValue } = useFormControl();
+what the issues i need to solve?
+
+overwrite: true
+schema: "http://localhost:3000/shop-api" # Path to Vendure schema for shop API
+documents: "src/graphql/**/*.ts"
+generates:
+  src/generated/graphql.ts:
+    plugins:
+      - "typescript"
+      - "typescript-operations"
+      - "typescript-react-apollo"
