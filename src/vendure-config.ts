@@ -65,7 +65,7 @@ export const config: VendureConfig = {
         Product: [
             {
                 name: 'landing',
-                type: 'string', // Use 'string' to store rich text content
+                type: 'text', // Use 'string' to store rich text content
                 ui: { component: 'landing-form-input' },
                 public: true
             },

@@ -55,6 +55,9 @@ export function LandingFormInput({ config }: ReactFormInputOptions) {
         init={{
           height: 500,
           menubar: true,
+          relative_urls: false,
+          remove_script_host: false,
+          document_base_url: 'http://localhost:3000',
           plugins: [
             'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
             'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
