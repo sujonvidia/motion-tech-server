@@ -11,6 +11,8 @@ import { AdminUiPlugin } from '@vendure/admin-ui-plugin';
 import 'dotenv/config';
 import path from 'path';
 import { LandingPagePlugin } from './plugins/landing-page/landing-page.plugin';
+import { FacebookPixelPlugin } from './plugins/facebook-pixel/facebook-pixel.plugin';
+
 const IS_DEV = process.env.APP_ENV === 'dev';
 
 export const config: VendureConfig = {
@@ -120,5 +122,6 @@ export const config: VendureConfig = {
             }),
         }),
         LandingPagePlugin.init({}),
+        FacebookPixelPlugin.init({}),
     ],
 };
