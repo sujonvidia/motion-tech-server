@@ -1,33 +1,49 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { ID, Product, RequestContext, TransactionalConnection, EventBus } from '@vendure/core';
+import { ID, Product, RequestContext, TransactionalConnection, EventBus, OrderEvent, OrderPlacedEvent } from '@vendure/core';
 import { FACEBOOK_PIXEL_PLUGIN_OPTIONS } from '../constants';
 import { PluginInitOptions } from '../types';
-import { OrderPlacedEvent  } from '@vendure/core';
 
 @Injectable()
 export class PixelService {
     constructor(
         private connection: TransactionalConnection,
         private eventBus: EventBus,
-        @Inject(FACEBOOK_PIXEL_PLUGIN_OPTIONS) private options: PluginInitOptions) 
-        {
-            this.eventBus.ofType(OrderPlacedEvent).subscribe((event) => this.handleOrderPlacedEvent(event));
-        }
+        @Inject(FACEBOOK_PIXEL_PLUGIN_OPTIONS) private options: PluginInitOptions
+    ) {
+        // Subscribe to OrderPlacedEvent
+        this.eventBus.ofType(OrderPlacedEvent).subscribe((event) => this.handleOrderPlacedEvent(event));
 
-        // Event handler for OrderPlacedEvent
+        // Subscribe to all OrderEvents
+        this.eventBus.ofType(OrderEvent).subscribe((event) => this.handleOrderEvent(event));
+    }
+
+    // Event handler for OrderPlacedEvent
     private async handleOrderPlacedEvent(event: OrderPlacedEvent) {
         const { order } = event;
-        console.log('handleOrderPlacedEvent:pixel:',order);
+        console.log('handleOrderPlacedEvent: pixel:', order);
 
         // Example: Send order data to Facebook Pixel for conversion tracking
         // this.sendPixelEvent('Purchase', {
         //     content_name: 'Order # ' + order.code,
-        //     content_ids: order.items.map(item => item.productId),
+        //     content_ids: order.lines.map(line => line.productVariant.id),
         //     content_type: 'product',
-        //     value: order.totalPrice,
-        //     currency: 'USD',
+        //     value: order.totalWithTax / 100,
+        //     currency: order.currencyCode,
         // });
     }
+
+    // General handler for all OrderEvents
+    private async handleOrderEvent(event: OrderEvent) {
+        console.log('handleOrderEvent: pixel:', event.constructor.name, event);
+
+        // Example: Use event type to determine logic
+        if (event instanceof OrderPlacedEvent) {
+            console.log('Additional handling for OrderPlacedEvent');
+        }
+
+        // Handle other types of OrderEvents if needed
+    }
+
     // Method to send events to Facebook Pixel
     // private sendPixelEvent(eventName: string, eventData: Record<string, any>) {
     //     const pixelCode = this.options.pixelCode;
