@@ -12,6 +12,7 @@ import 'dotenv/config';
 import path from 'path';
 import { LandingPagePlugin } from './plugins/landing-page/landing-page.plugin';
 import { FacebookPixelPlugin } from './plugins/facebook-pixel/facebook-pixel.plugin';
+import { MultivendorPlugin } from './plugins/multivendor-plugin/multivendor.plugin';
 
 const IS_DEV = process.env.APP_ENV === 'dev';
 
@@ -74,6 +75,10 @@ export const config: VendureConfig = {
         ],
     },
     plugins: [
+        MultivendorPlugin.init({
+            platformFeePercent: 10,
+            platformFeeSKU: 'FEE',
+        }),
         AssetServerPlugin.init({
             route: 'assets',
             assetUploadDir: path.join(__dirname, '../static/assets'),
