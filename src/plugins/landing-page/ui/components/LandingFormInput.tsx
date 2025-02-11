@@ -1,148 +1,76 @@
-// import React from 'react';
-import React, { useCallback , useRef} from 'react';
-import { Editor } from '@tinymce/tinymce-react';
-import { useFormControl, ReactFormInputOptions } from '@vendure/admin-ui/react';
-import { Editor as TinyMCEEditor } from 'tinymce';
-// import tinymce from 'tinymce';
-// import 'tinymce/icons/default';
-// import 'tinymce/themes/silver';
-// import 'tinymce/plugins/advlist';
-// import 'tinymce/plugins/autolink';
-// import 'tinymce/plugins/lists';
-// import 'tinymce/plugins/link';
-// import 'tinymce/plugins/image';
-// import 'tinymce/plugins/charmap';
-// import 'tinymce/plugins/print';
-// import 'tinymce/plugins/preview';
-// import 'tinymce/plugins/anchor';
-// import 'tinymce/plugins/searchreplace';
-// import 'tinymce/plugins/visualblocks';
-// import 'tinymce/plugins/code';
-// import 'tinymce/plugins/fullscreen';
-// import 'tinymce/plugins/insertdatetime';
-// import 'tinymce/plugins/media';
-// import 'tinymce/plugins/table';
-// import 'tinymce/plugins/paste';
-// import 'tinymce/plugins/help';
-// import 'tinymce/plugins/wordcount';
+import React, { useEffect, useRef, useCallback } from "react";
+import grapesjs from "grapesjs";
+// ✅ Import the preset plugin
+import gjsPresetWebpage from "grapesjs-preset-webpage"; // ✅ Import the preset plugin
+import grapesjsBlocksBasic from "grapesjs-blocks-basic"; // Import the basic blocks plugin
+import grapesjsPluginForms from "grapesjs-plugin-forms"; // Import the forms plugin
+import grapesjsPluginExport from "grapesjs-plugin-export"; // Import the export plugin
+import { useFormControl, ReactFormInputOptions } from "@vendure/admin-ui/react";
 
 export function LandingFormInput({ config }: ReactFormInputOptions) {
     const { value, setFormValue } = useFormControl();
-    // const editorRef = useRef(null);
-    const editorRef = useRef<TinyMCEEditor | null>(null);
+    const editorRef = useRef<any>(null);
+    const editorContainerRef = useRef<HTMLDivElement | null>(null);
 
-    // const handleEditorChange = (content: string) => {
-    //     setFormValue(content);
-    // };
-    const handleEditorChange = useCallback((content: string) => {
-        setFormValue(content);
+    // Initialize GrapesJS Editor
+    useEffect(() => {
+        if (!editorContainerRef.current) return;
+
+        editorRef.current = grapesjs.init({
+            container: editorContainerRef.current,
+            height: "500px",
+            fromElement: true,
+            storageManager: false, // Disable built-in storage
+            plugins: [
+                gjsPresetWebpage, // Include the webpage plugin
+                grapesjsBlocksBasic, // Include basic blocks plugin
+                grapesjsPluginForms, // Include forms plugin
+                grapesjsPluginExport // Include export plugin
+            ], // ✅ Include the webpage plugin
+            canvas: {
+                styles: [
+                    "https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css",
+                    "https://fonts.googleapis.com/css?family=Roboto"
+                ]
+            },
+        });
+
+        // Load initial content if exists
+        if (value) {
+            editorRef.current.setComponents(value);
+        }
+
+        // Handle editor content changes
+        editorRef.current.on("update", () => {
+            setFormValue(editorRef.current?.getHtml());
+        });
+
     }, [setFormValue]);
 
-    const log = () => {
+    useEffect(() => {
+        // ✅ Dynamically inject CSS for GrapesJS styles
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://unpkg.com/grapesjs/dist/css/grapes.min.css';
+        document.head.appendChild(link);
+
+        return () => {
+            document.head.removeChild(link);
+        };
+    }, []);
+
+    // Save content from editor
+    const saveContent = useCallback(() => {
         if (editorRef.current) {
-          console.log(editorRef.current.getContent());
-          setFormValue(editorRef.current.getContent())
+            setFormValue(editorRef.current.getHtml());
+            console.log("Saved Content:", editorRef.current.getHtml());
         }
-      };
+    }, [setFormValue]);
 
     return (
         <>
-        <Editor
-        apiKey='d1hzqw9ym2dak60p72jjeq0iqypm8vtd44xtzwhv05kkp9r7'
-        onInit={(_evt, editor) => editorRef.current = editor}
-        // onEditorChange={handleEditorChange}
-        initialValue={value}
-        init={{
-          height: 500,
-          menubar: true,
-          relative_urls: false,
-          remove_script_host: false,
-          document_base_url: 'http://localhost:3000',
-          plugins: [
-            'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-            'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-            'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
-          ],
-          toolbar: 'undo redo | blocks | ' +
-            'bold italic forecolor | alignleft aligncenter ' +
-            'alignright alignjustify | bullist numlist outdent indent | ' +
-            'removeformat | help',
-          content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
-        }}
-      />
-      <button onClick={log}>Save editor content</button>
-      </>
-        // <Editor
-        //     apiKey='d1hzqw9ym2dak60p72jjeq0iqypm8vtd44xtzwhv05kkp9r7'
-        //     initialValue={value}
-        //     // init={{
-        //     //     height: 500,
-        //     //     menubar: true,
-        //     //     plugins: [
-        //     //         'advlist autolink lists link image charmap print preview anchor',
-        //     //         'searchreplace visualblocks code fullscreen',
-        //     //         'insertdatetime media table paste code help wordcount',
-        //     //         'media',
-        //     //         'image',
-        //     //         'imagetools',
-        //     //         'code',
-        //     //     ],
-        //     //     toolbar: 
-        //     //         'undo redo | formatselect | bold italic backcolor | \
-        //     //         alignleft aligncenter alignright alignjustify | \
-        //     //         bullist numlist outdent indent | removeformat | help | \
-        //     //         media image | code',
-        //     //     image_title: true,
-        //     //     automatic_uploads: true,
-        //     //     file_picker_types: 'image media',
-        //     //     file_picker_callback: function (cb, value, meta) {
-        //     //         let input = document.createElement('input');
-        //     //         input.setAttribute('type', 'file');
-        //     //         input.setAttribute('accept', meta.filetype === 'image' ? 'image/*' : 'media/*');
-
-        //     //         input.onchange = function () {
-        //     //             if (input.files && input.files.length > 0) {
-        //     //                 let file = input.files[0];
-        //     //                 let reader = new FileReader();
-        //     //                 reader.onload = function () {
-        //     //                     if (tinymce.activeEditor) { // Null check for activeEditor
-        //     //                         if (typeof reader.result === 'string') { // Ensure reader.result is a string
-        //     //                             let id = 'blobid' + (new Date()).getTime();
-        //     //                             let blobCache = tinymce.activeEditor.editorUpload.blobCache;
-        //     //                             let base64 = reader.result.split(',')[1];
-        //     //                             let blobInfo = blobCache.create(id, file, base64);
-        //     //                             blobCache.add(blobInfo);
-        //     //                             cb(blobInfo.blobUri(), { title: file.name });
-        //     //                         } else {
-        //     //                             console.error('FileReader result is not a string.');
-        //     //                         }
-        //     //                     } else {
-        //     //                         console.error('Editor is not available.');
-        //     //                     }
-        //     //                 };
-        //     //                 reader.readAsDataURL(file);
-        //     //             }
-        //     //         };
-
-        //     //         input.click();
-        //     //     },
-        //     //     ...config, // Spread any additional config passed in
-        //     // }}
-        //     init={{
-        //         height: 500,
-        //         menubar: true,
-        //         plugins: [
-        //           'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-        //           'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-        //           'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
-        //         ],
-        //         toolbar: 'undo redo | blocks | ' +
-        //           'bold italic forecolor | alignleft aligncenter ' +
-        //           'alignright alignjustify | bullist numlist outdent indent | ' +
-        //           'removeformat | help',
-        //         content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
-        //       }}
-        //     onEditorChange={handleEditorChange}
-        // />
+            <div ref={editorContainerRef}></div> {/* Main editor container */}
+            <button onClick={saveContent}>Save Page</button>
+        </>
     );
 }

@@ -19,6 +19,7 @@
     "@vendure/email-plugin": "3.0.3",
     "@vendure/ui-devkit": "^3.0.3",
     "dotenv": "16.4.5",
+    "grapesjs": "^0.22.5",
     "pg": "8.13.0",
     "tinymce": "^7.3.0"
   },
