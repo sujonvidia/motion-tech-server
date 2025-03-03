@@ -12,6 +12,7 @@
     "start": "concurrently npm:start:*"
   },
   "dependencies": {
+    "@grapesjs/studio-sdk": "^1.0.32",
     "@tinymce/tinymce-react": "^5.1.1",
     "@vendure/admin-ui-plugin": "3.0.3",
     "@vendure/asset-server-plugin": "3.0.3",
@@ -20,13 +21,18 @@
     "@vendure/ui-devkit": "^3.0.3",
     "dotenv": "16.4.5",
     "grapesjs": "^0.22.5",
+    "grapesjs-blocks-basic": "^1.0.2",
+    "grapesjs-plugin-export": "^1.0.12",
+    "grapesjs-plugin-forms": "^2.0.6",
+    "grapesjs-preset-webpage": "^1.0.3",
     "pg": "8.13.0",
-    "tinymce": "^7.3.0"
+    "tinymce": "^7.3.0",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
-    "@types/react": "^18.3.10",
+    "@types/react": "^18.3.18",
     "@vendure/cli": "3.0.3",
     "concurrently": "9.0.1",
-    "typescript": "5.3.3"
+    "typescript": "^5.3.3"
   }
 }

@@ -1,65 +1,87 @@
-import React, { useEffect, useRef, useCallback } from "react";
+import React, { useEffect, useRef, useCallback, useState } from "react";
 import grapesjs from "grapesjs";
-// ✅ Import the preset plugin
-import gjsPresetWebpage from "grapesjs-preset-webpage"; // ✅ Import the preset plugin
-import grapesjsBlocksBasic from "grapesjs-blocks-basic"; // Import the basic blocks plugin
-import grapesjsPluginForms from "grapesjs-plugin-forms"; // Import the forms plugin
-import grapesjsPluginExport from "grapesjs-plugin-export"; // Import the export plugin
+import gjsPresetWebpage from "grapesjs-preset-webpage";
+import grapesjsBlocksBasic from "grapesjs-blocks-basic";
+import grapesjsPluginForms from "grapesjs-plugin-forms";
+import grapesjsPluginExport from "grapesjs-plugin-export";
 import { useFormControl, ReactFormInputOptions } from "@vendure/admin-ui/react";
 
-export function LandingFormInput({ config }: ReactFormInputOptions) {
+export default function LandingFormInput({ config }: ReactFormInputOptions) {
     const { value, setFormValue } = useFormControl();
     const editorRef = useRef<any>(null);
     const editorContainerRef = useRef<HTMLDivElement | null>(null);
+    const [fullscreen, setFullscreen] = useState(false);
 
-    // Initialize GrapesJS Editor
     useEffect(() => {
         if (!editorContainerRef.current) return;
 
+        // Initialize GrapesJS Editor
         editorRef.current = grapesjs.init({
             container: editorContainerRef.current,
-            height: "500px",
-            fromElement: true,
-            storageManager: false, // Disable built-in storage
+            height: fullscreen ? "100vh" : "600px",
+            // fromElement: true,
+            storageManager: false,
             plugins: [
-                gjsPresetWebpage, // Include the webpage plugin
-                grapesjsBlocksBasic, // Include basic blocks plugin
-                grapesjsPluginForms, // Include forms plugin
-                grapesjsPluginExport // Include export plugin
-            ], // ✅ Include the webpage plugin
+                gjsPresetWebpage,
+                grapesjsBlocksBasic,
+                grapesjsPluginForms,
+                grapesjsPluginExport
+            ],
             canvas: {
                 styles: [
                     "https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css",
                     "https://fonts.googleapis.com/css?family=Roboto"
                 ]
             },
+            // panels: {
+            //     defaults: [
+            //         {
+            //             id: "layers-panel",
+            //             el: ".panel__left",
+            //             resizable: { maxDim: 350, minDim: 200, cl: true }
+            //         },
+            //         {
+            //             id: "styles-panel",
+            //             el: ".panel__right",
+            //             resizable: { maxDim: 350, minDim: 200, cr: true }
+            //         }
+            //     ]
+            // },
+            // layerManager: { appendTo: ".panel__left" }, 
+            // selectorManager: { appendTo: ".panel__right" },
+            // styleManager: { appendTo: ".panel__right" },
+            // blockManager: { appendTo: "#blocks" }
         });
 
-        // Load initial content if exists
+        // Load saved content into editor
         if (value) {
             editorRef.current.setComponents(value);
         }
 
-        // Handle editor content changes
-        editorRef.current.on("update", () => {
-            setFormValue(editorRef.current?.getHtml());
+        // Listen for changes and update form
+        editorRef.current.on("component:update", () => {
+            setFormValue(editorRef.current.getHtml());
         });
 
-    }, [setFormValue]);
+        return () => {
+            if (editorRef.current) editorRef.current.destroy();
+        };
+    }, [value, setFormValue, fullscreen]);
 
+    // Load GrapesJS CSS
     useEffect(() => {
-        // ✅ Dynamically inject CSS for GrapesJS styles
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = 'https://unpkg.com/grapesjs/dist/css/grapes.min.css';
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = "https://unpkg.com/grapesjs/dist/css/grapes.min.css";
         document.head.appendChild(link);
 
         return () => {
-            document.head.removeChild(link);
+            if (document.head.contains(link)) {
+                document.head.removeChild(link);
+            }
         };
     }, []);
 
-    // Save content from editor
     const saveContent = useCallback(() => {
         if (editorRef.current) {
             setFormValue(editorRef.current.getHtml());
@@ -67,10 +89,30 @@ export function LandingFormInput({ config }: ReactFormInputOptions) {
         }
     }, [setFormValue]);
 
+    const toggleFullscreen = () => setFullscreen(!fullscreen);
+
     return (
-        <>
-            <div ref={editorContainerRef}></div> {/* Main editor container */}
+        <div style={{ display: "flex", flexDirection: "column", height: fullscreen ? "100vh" : "auto" }}>
+            {/* GrapesJS Editor Layout */}
+            <div style={{ display: "flex", height: fullscreen ? "100vh" : "600px" }}>
+                {/* Left Panel (Layers Manager) */}
+                <div className="panel__left" style={{ width: "250px", background: "#f5f5f5", overflow: "auto" }}></div>
+
+                {/* Editor Canvas */}
+                <div ref={editorContainerRef} style={{ flex: 1, height: "100%", overflow: "auto" }}></div>
+
+                {/* Right Panel (Style Manager & Selector Manager) */}
+                <div className="panel__right" style={{ width: "250px", background: "#f5f5f5", overflow: "auto" }}></div>
+            </div>
+
+            {/* Block Manager Panel (Bottom) */}
+            <div id="blocks" style={{ background: "#eaeaea", padding: "10px", minHeight: "100px" }}></div>
+
+            {/* Controls */}
+            <button onClick={toggleFullscreen} style={{ position: "absolute", top: "10px", right: "10px" }}>
+                {fullscreen ? "Exit Fullscreen" : "Fullscreen"}
+            </button>
             <button onClick={saveContent}>Save Page</button>
-        </>
+        </div>
     );
 }
