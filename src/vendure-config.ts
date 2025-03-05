@@ -15,6 +15,10 @@ import { FacebookPixelPlugin } from './plugins/facebook-pixel/facebook-pixel.plu
 import { MultivendorPlugin } from './plugins/multivendor-plugin/multivendor.plugin';
 // import { PaymentExtensionsPlugin } from '@pinelab/vendure-plugin-payment-extensions';
 
+import express from 'express';
+import bodyParser from 'body-parser';
+import { INestApplication } from '@nestjs/common';
+
 const IS_DEV = process.env.APP_ENV === 'dev';
 
 export const config: VendureConfig = {
@@ -34,6 +38,18 @@ export const config: VendureConfig = {
                 settings: { 'request.credentials': 'include' },
             },
             shopApiDebug: true,
+            middlewareFn: (app: INestApplication) => {
+                const expressApp = app.getHttpAdapter().getInstance() as express.Express;
+                
+                expressApp.use(bodyParser.json({ limit: '100mb' })); // Increase limit if needed
+                expressApp.use(bodyParser.urlencoded({ limit: '100mb', extended: true }));
+            
+                // Also configure in Vendure's built-in middleware
+                expressApp.use((req, res, next) => {
+                    res.setHeader('Access-Control-Allow-Origin', '*'); // Optional: CORS
+                    next();
+                });
+            },
         } : {}),
     },
     authOptions: {

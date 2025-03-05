@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback, useState } from "react";
+import React, { useEffect, useRef, useCallback } from "react";
 import grapesjs from "grapesjs";
 import gjsPresetWebpage from "grapesjs-preset-webpage";
 import grapesjsBlocksBasic from "grapesjs-blocks-basic";
@@ -10,16 +10,14 @@ export default function LandingFormInput({ config }: ReactFormInputOptions) {
     const { value, setFormValue } = useFormControl();
     const editorRef = useRef<any>(null);
     const editorContainerRef = useRef<HTMLDivElement | null>(null);
-    const [fullscreen, setFullscreen] = useState(false);
 
     useEffect(() => {
-        if (!editorContainerRef.current) return;
+        if (!editorContainerRef.current || editorRef.current) return;
 
-        // Initialize GrapesJS Editor
+        // Initialize GrapesJS Editor only once
         editorRef.current = grapesjs.init({
             container: editorContainerRef.current,
-            height: fullscreen ? "100vh" : "600px",
-            // fromElement: true,
+            height: "600px",
             storageManager: false,
             plugins: [
                 gjsPresetWebpage,
@@ -32,25 +30,7 @@ export default function LandingFormInput({ config }: ReactFormInputOptions) {
                     "https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css",
                     "https://fonts.googleapis.com/css?family=Roboto"
                 ]
-            },
-            // panels: {
-            //     defaults: [
-            //         {
-            //             id: "layers-panel",
-            //             el: ".panel__left",
-            //             resizable: { maxDim: 350, minDim: 200, cl: true }
-            //         },
-            //         {
-            //             id: "styles-panel",
-            //             el: ".panel__right",
-            //             resizable: { maxDim: 350, minDim: 200, cr: true }
-            //         }
-            //     ]
-            // },
-            // layerManager: { appendTo: ".panel__left" }, 
-            // selectorManager: { appendTo: ".panel__right" },
-            // styleManager: { appendTo: ".panel__right" },
-            // blockManager: { appendTo: "#blocks" }
+            }
         });
 
         // Load saved content into editor
@@ -64,9 +44,10 @@ export default function LandingFormInput({ config }: ReactFormInputOptions) {
         });
 
         return () => {
-            if (editorRef.current) editorRef.current.destroy();
+            editorRef.current?.destroy();
+            editorRef.current = null;
         };
-    }, [value, setFormValue, fullscreen]);
+    }, []); // Load once on mount
 
     // Load GrapesJS CSS
     useEffect(() => {
@@ -76,42 +57,50 @@ export default function LandingFormInput({ config }: ReactFormInputOptions) {
         document.head.appendChild(link);
 
         return () => {
-            if (document.head.contains(link)) {
-                document.head.removeChild(link);
-            }
+            document.head.removeChild(link);
         };
     }, []);
 
+    // const saveContent = useCallback(() => {
+    //     if (editorRef.current) {
+    //         setFormValue(editorRef.current.getHtml());
+    //         console.log("Saved Content:", editorRef.current.getHtml());
+    //     }
+    // }, [setFormValue]);
+
     const saveContent = useCallback(() => {
         if (editorRef.current) {
-            setFormValue(editorRef.current.getHtml());
-            console.log("Saved Content:", editorRef.current.getHtml());
+            const html = editorRef.current.getHtml();
+            const css = editorRef.current.getCss();
+            
+            // Combine HTML and CSS
+            const fullContent = `
+                <style>${css}</style>
+                ${html}
+            `;
+            
+            setFormValue(fullContent);
+            console.log("Saved Content:", fullContent);
         }
     }, [setFormValue]);
 
-    const toggleFullscreen = () => setFullscreen(!fullscreen);
-
     return (
-        <div style={{ display: "flex", flexDirection: "column", height: fullscreen ? "100vh" : "auto" }}>
-            {/* GrapesJS Editor Layout */}
-            <div style={{ display: "flex", height: fullscreen ? "100vh" : "600px" }}>
-                {/* Left Panel (Layers Manager) */}
+        <div style={{ display: "flex", flexDirection: "column", height: "auto" }}>
+            <div style={{ display: "flex", height: "600px" }}>
+                {/* Left Panel */}
                 <div className="panel__left" style={{ width: "250px", background: "#f5f5f5", overflow: "auto" }}></div>
 
                 {/* Editor Canvas */}
                 <div ref={editorContainerRef} style={{ flex: 1, height: "100%", overflow: "auto" }}></div>
 
-                {/* Right Panel (Style Manager & Selector Manager) */}
+                {/* Right Panel */}
                 <div className="panel__right" style={{ width: "250px", background: "#f5f5f5", overflow: "auto" }}></div>
             </div>
 
-            {/* Block Manager Panel (Bottom) */}
+            {/* Block Manager Panel */}
             <div id="blocks" style={{ background: "#eaeaea", padding: "10px", minHeight: "100px" }}></div>
 
-            {/* Controls */}
-            <button onClick={toggleFullscreen} style={{ position: "absolute", top: "10px", right: "10px" }}>
-                {fullscreen ? "Exit Fullscreen" : "Fullscreen"}
-            </button>
+            {/* Save Button */}
             <button onClick={saveContent}>Save Page</button>
         </div>
     );
