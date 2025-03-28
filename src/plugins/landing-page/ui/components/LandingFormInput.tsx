@@ -13,7 +13,7 @@ export default function LandingFormInput({ config }: ReactFormInputOptions) {
 
     useEffect(() => {
         if (!editorContainerRef.current || editorRef.current) return;
-
+    
         // Initialize GrapesJS Editor only once
         editorRef.current = grapesjs.init({
             container: editorContainerRef.current,
@@ -30,24 +30,75 @@ export default function LandingFormInput({ config }: ReactFormInputOptions) {
                     "https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css",
                     "https://fonts.googleapis.com/css?family=Roboto"
                 ]
+            },
+            styleManager: {
+                clearProperties: true,
+                sectors: [{
+                    name: 'General',
+                    buildProps: ['float', 'display', 'position', 'top', 'right', 'left', 'bottom']
+                },{
+                    name: 'Dimension',
+                    open: false,
+                    buildProps: ['width', 'height', 'max-width', 'min-height', 'margin', 'padding']
+                },{
+                    name: 'Typography',
+                    open: false,
+                    buildProps: ['font-family', 'font-size', 'font-weight', 'letter-spacing', 'color', 'line-height', 'text-align', 'text-shadow']
+                },{
+                    name: 'Decorations',
+                    open: false,
+                    buildProps: ['opacity', 'background-color', 'border-radius', 'border', 'box-shadow', 'background']
+                },{
+                    name: 'Extra',
+                    open: false,
+                    buildProps: ['transition', 'perspective', 'transform']
+                }]
             }
         });
-
+    
+        editorRef.current.Panels.addPanel({
+            id: 'views',
+            buttons: [
+                {
+                    id: 'open-sm',
+                    command: 'open-sm',
+                    className: 'fa fa-paint-brush',
+                    attributes: { title: 'Open Style Manager' },
+                    active: true,
+                },
+                {
+                    id: 'open-tm',
+                    command: 'open-tm',
+                    className: 'fa fa-cog',
+                    attributes: { title: 'Open Settings' },
+                },
+                {
+                    id: 'open-code',
+                    command: 'open-code',
+                    className: 'fa fa-code',
+                    attributes: { title: 'Open Code Editor' },
+                }
+            ]
+        });
+    
+        // Ensure Style Manager is opened by default
+        editorRef.current.Commands.run('open-sm');
+    
         // Load saved content into editor
         if (value) {
             editorRef.current.setComponents(value);
         }
-
+    
         // Listen for changes and update form
         editorRef.current.on("component:update", () => {
             setFormValue(editorRef.current.getHtml());
         });
-
+    
         return () => {
             editorRef.current?.destroy();
             editorRef.current = null;
         };
-    }, []); // Load once on mount
+    }, []);
 
     // Load GrapesJS CSS
     useEffect(() => {

@@ -4,6 +4,9 @@ import {
     DefaultJobQueuePlugin,
     DefaultSearchPlugin,
     VendureConfig,
+    configureDefaultOrderProcess,
+    DefaultGuestCheckoutStrategy,
+    NoopSessionCacheStrategy  
 } from '@vendure/core';
 import { defaultEmailHandlers, EmailPlugin } from '@vendure/email-plugin';
 import { AssetServerPlugin } from '@vendure/asset-server-plugin';
@@ -20,6 +23,22 @@ import bodyParser from 'body-parser';
 import { INestApplication } from '@nestjs/common';
 
 const IS_DEV = process.env.APP_ENV === 'dev';
+
+const myCustomOrderProcess = configureDefaultOrderProcess({
+    // Disable the constraint that requires
+    // Orders to have a shipping method assigned
+    // before payment.
+    arrangingPaymentRequiresShipping: false,
+    checkModificationPayments: false,
+    checkAdditionalPaymentsAmount: false,
+    checkAllVariantsExist: false,
+    arrangingPaymentRequiresContents: false,
+    arrangingPaymentRequiresCustomer: false,
+    arrangingPaymentRequiresStock: false,
+    checkPaymentsCoverTotal: false,
+    checkAllItemsBeforeCancel: false,
+    checkFulfillmentStates: false,
+  });
 
 export const config: VendureConfig = {
     apiOptions: {
@@ -61,6 +80,8 @@ export const config: VendureConfig = {
         cookieOptions: {
           secret: process.env.COOKIE_SECRET,
         },
+        // requireVerification: false,
+        // sessionCacheStrategy: new NoopSessionCacheStrategy(),
     },
     dbConnectionOptions: {
         type: 'postgres',
@@ -75,6 +96,13 @@ export const config: VendureConfig = {
         port: +process.env.DB_PORT,
         username: process.env.DB_USERNAME,
         password: process.env.DB_PASSWORD,
+    },
+    orderOptions: {
+        process: [myCustomOrderProcess],
+        guestCheckoutStrategy: new DefaultGuestCheckoutStrategy({
+            allowGuestCheckouts: true, // Enable guest checkout
+            allowGuestCheckoutForRegisteredCustomers: true, // Prevent registered customers from checking out as guests
+        }),
     },
     paymentOptions: {
         paymentMethodHandlers: [dummyPaymentHandler],

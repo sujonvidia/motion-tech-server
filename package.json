@@ -13,6 +13,8 @@
   },
   "dependencies": {
     "@grapesjs/studio-sdk": "^1.0.32",
+    "@plasmicapp/host": "^1.0.211",
+    "@plasmicapp/loader-react": "^1.0.379",
     "@tinymce/tinymce-react": "^5.1.1",
     "@vendure/admin-ui-plugin": "3.0.3",
     "@vendure/asset-server-plugin": "3.0.3",
