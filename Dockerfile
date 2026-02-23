@@ -4,6 +4,10 @@ WORKDIR /usr/src/app
 
 COPY package.json ./
 COPY package-lock.json ./
-RUN npm install --production
+RUN npm ci
 COPY . .
-RUN npm run build
+RUN npm run build && npm prune --omit=dev
+
+ENV NODE_ENV=production
+
+CMD ["npm", "run", "start:server"]
