@@ -23,6 +23,9 @@ import bodyParser from 'body-parser';
 import { INestApplication } from '@nestjs/common';
 
 const IS_DEV = process.env.APP_ENV === 'dev';
+const landingUiExtensionPath = IS_DEV
+    ? path.join(__dirname, 'plugins/landing-page/ui')
+    : path.join(process.cwd(), 'src/plugins/landing-page/ui');
 
 const myCustomOrderProcess = configureDefaultOrderProcess({
     // Disable the constraint that requires
@@ -166,7 +169,7 @@ export const config: VendureConfig = {
                 outputPath: path.join(__dirname, '../admin-ui'),
                 extensions: [{
                     id: 'common',
-                    extensionPath: path.join(__dirname, 'plugins/landing-page/ui'),
+                    extensionPath: landingUiExtensionPath,
                     providers: ['providers.ts'],
                 }],
             }),
