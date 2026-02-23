@@ -24,6 +24,7 @@ import { INestApplication } from '@nestjs/common';
 
 const IS_DEV = process.env.APP_ENV === 'dev';
 const landingUiExtensionPath = path.join(__dirname, 'plugins/landing-page/ui');
+const ASSET_URL_PREFIX = process.env.ASSET_URL_PREFIX;
 
 const myCustomOrderProcess = configureDefaultOrderProcess({
     // Disable the constraint that requires
@@ -131,7 +132,7 @@ export const config: VendureConfig = {
             // For local dev, the correct value for assetUrlPrefix should
             // be guessed correctly, but for production it will usually need
             // to be set manually to match your production url.
-            assetUrlPrefix: IS_DEV ? undefined : 'https://www.my-shop.com/assets/',
+            assetUrlPrefix: IS_DEV ? undefined : ASSET_URL_PREFIX,
         }),
         DefaultJobQueuePlugin.init({ useDatabaseForBuffer: true }),
         DefaultSearchPlugin.init({ bufferUpdates: false, indexStockStatus: true }),
