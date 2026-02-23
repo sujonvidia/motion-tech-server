@@ -25,6 +25,11 @@ import { INestApplication } from '@nestjs/common';
 const IS_DEV = process.env.APP_ENV === 'dev';
 const landingUiExtensionPath = path.join(__dirname, 'plugins/landing-page/ui');
 const ASSET_URL_PREFIX = process.env.ASSET_URL_PREFIX;
+const ADMIN_UI_API_HOST = process.env.ADMIN_UI_API_HOST;
+const ADMIN_UI_API_PORT = process.env.ADMIN_UI_API_PORT
+    ? Number(process.env.ADMIN_UI_API_PORT)
+    : undefined;
+const ADMIN_UI_PORT = process.env.ADMIN_UI_PORT ? Number(process.env.ADMIN_UI_PORT) : 3002;
 
 const myCustomOrderProcess = configureDefaultOrderProcess({
     // Disable the constraint that requires
@@ -153,9 +158,10 @@ export const config: VendureConfig = {
         }),
         AdminUiPlugin.init({
             route: 'admin',
-            port: 3002,
+            port: ADMIN_UI_PORT,
             adminUiConfig: {
-                apiPort: Number(process.env.PORT) || 3000,
+                apiHost: IS_DEV ? undefined : ADMIN_UI_API_HOST,
+                apiPort: IS_DEV ? (Number(process.env.PORT) || 3000) : ADMIN_UI_API_PORT ?? 443,
             },
             ...(IS_DEV
                 ? {
