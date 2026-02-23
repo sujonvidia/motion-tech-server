@@ -23,9 +23,7 @@ import bodyParser from 'body-parser';
 import { INestApplication } from '@nestjs/common';
 
 const IS_DEV = process.env.APP_ENV === 'dev';
-const landingUiExtensionPath = IS_DEV
-    ? path.join(__dirname, 'plugins/landing-page/ui')
-    : path.join(process.cwd(), 'src/plugins/landing-page/ui');
+const landingUiExtensionPath = path.join(__dirname, 'plugins/landing-page/ui');
 
 const myCustomOrderProcess = configureDefaultOrderProcess({
     // Disable the constraint that requires
@@ -156,23 +154,22 @@ export const config: VendureConfig = {
             route: 'admin',
             port: 3002,
             adminUiConfig: {
-                apiPort: 3000,
+                apiPort: Number(process.env.PORT) || 3000,
             },
-            // app: compileUiExtensions({
-            //     outputPath: path.join(__dirname, '../admin-ui'),
-            //     extensions: [
-            //         LandingPagePlugin.ui,
-            //     ],
-            //     devMode: true,
-            // }),
-            app: compileUiExtensions({
-                outputPath: path.join(__dirname, '../admin-ui'),
-                extensions: [{
-                    id: 'common',
-                    extensionPath: landingUiExtensionPath,
-                    providers: ['providers.ts'],
-                }],
-            }),
+            ...(IS_DEV
+                ? {
+                      app: compileUiExtensions({
+                          outputPath: path.join(__dirname, '../admin-ui'),
+                          extensions: [
+                              {
+                                  id: 'common',
+                                  extensionPath: landingUiExtensionPath,
+                                  providers: ['providers.ts'],
+                              },
+                          ],
+                      }),
+                  }
+                : {}),
         }),
         LandingPagePlugin.init({}),
         FacebookPixelPlugin.init({}),
