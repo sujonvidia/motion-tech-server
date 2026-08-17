@@ -139,6 +139,7 @@ import { MultivendorPluginOptions } from './types';
 
         const customDefaultOrderProcess = configureDefaultOrderProcess({
             checkFulfillmentStates: false,
+            arrangingPaymentRequiresCustomer: false,
         });
         config.orderOptions.process = [customDefaultOrderProcess, multivendorOrderProcess];
         config.orderOptions.orderSellerStrategy = new MultivendorSellerStrategy();
