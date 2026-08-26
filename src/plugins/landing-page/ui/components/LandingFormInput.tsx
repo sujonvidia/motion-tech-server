@@ -277,6 +277,60 @@ export default function LandingFormInput({ config }: ReactFormInputOptions) {
                 ul li { margin-bottom: 6px; }
             `,
         },
+        nightlight: {
+            html: `
+                <section style="position:relative;padding:0;margin:0;overflow:hidden;">
+                    <div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 35%,rgba(255,214,120,.8) 0,rgba(255,239,190,.48) 36%,rgba(255,244,214,.12) 74%);opacity:.95;"></div>
+                    <div style="position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:120px 20px 100px;color:#2b2118;text-align:center;">
+                        <p style="margin:0 0 14px;color:#f6c978;font-size:.82rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;">Soft light. Better nights.</p>
+                        <h1 style="font-size:clamp(2rem,5vw,3.5rem);font-weight:700;line-height:1.1;margin:0 0 18px;color:#2b2118;">A warmer way<br>to wind down</h1>
+                        <p style="font-size:1.1rem;color:#4b3828;opacity:1;max-width:640px;margin:0 auto 28px;">A gentle bedside glow that makes late-night reading, feeds, and quiet moments feel more comfortable.</p>
+                        <a href="#order" style="display:inline-block;padding:14px 26px;background:#f6c978;color:#241a10;font-weight:700;border-radius:6px;text-decoration:none;">Bring Home the Glow</a>
+                    </div>
+                </section>
+                <section style="max-width:1100px;margin:0 auto;padding:60px 20px;">
+                    <h2 style="text-align:center;font-size:2rem;margin:0 0 30px;color:#241a10;">Made for your evening routine</h2>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:24px;">
+                        <div style="padding:24px;border:1px solid #eadfce;border-radius:12px;background:#fffaf2;">
+                            <h3 style="margin:0 0 10px;color:#241a10;">Gentle brightness</h3>
+                            <p style="margin:0;color:#665b50;">A warm, diffused glow that feels easy on tired eyes.</p>
+                        </div>
+                        <div style="padding:24px;border:1px solid #eadfce;border-radius:12px;background:#fffaf2;">
+                            <h3 style="margin:0 0 10px;color:#241a10;">Simple dimming</h3>
+                            <p style="margin:0;color:#665b50;">Set the mood with smooth brightness control at your fingertips.</p>
+                        </div>
+                        <div style="padding:24px;border:1px solid #eadfce;border-radius:12px;background:#fffaf2;">
+                            <h3 style="margin:0 0 10px;color:#241a10;">All-night comfort</h3>
+                            <p style="margin:0;color:#665b50;">A compact, dependable companion for bedrooms and nurseries.</p>
+                        </div>
+                    </div>
+                </section>
+                <section id="order" style="background:#f4efe7;padding:60px 20px;">
+                    <div style="max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:32px;align-items:center;">
+                        <div style="min-height:320px;border-radius:12px;background:radial-gradient(circle at 50% 42%,#ffe7a8 0,#d49b4d 12%,#34261c 34%,#111827 72%);box-shadow:0 18px 45px rgba(36,26,16,.2);"></div>
+                        <div>
+                            <h2 style="font-size:2rem;margin:0 0 12px;color:#241a10;">Nightlight</h2>
+                            <p style="color:#665b50;margin:0 0 18px;">Turn any corner into a calm pocket of light, without waking the whole room.</p>
+                            <ul style="margin:0 0 20px;padding-left:18px;color:#4b4036;">
+                                <li>Warm, eye-friendly ambient light</li>
+                                <li>Adjustable brightness for every moment</li>
+                                <li>Low-profile design for bedside tables</li>
+                                <li>Quiet, energy-efficient operation</li>
+                            </ul>
+                            <a href="/checkout" style="display:inline-block;padding:14px 22px;background:#241a10;color:#fff;border-radius:6px;text-decoration:none;font-weight:600;">Shop Nightlight</a>
+                        </div>
+                    </div>
+                </section>
+                <section style="max-width:1100px;margin:0 auto;padding:60px 20px;text-align:center;">
+                    <h2 style="font-size:2rem;margin:0 0 20px;color:#241a10;">A little light goes a long way</h2>
+                    <p style="max-width:640px;margin:0 auto;color:#665b50;">From bedtime stories to midnight water breaks, keep the atmosphere calm and the path visible.</p>
+                </section>
+            `,
+            css: `
+                section { font-family: Arial, sans-serif; }
+                ul li { margin-bottom: 6px; }
+            `,
+        },
         simple: {
             html: `
                 <section style="max-width:900px;margin:0 auto;padding:60px 20px;text-align:center;">
@@ -342,6 +396,7 @@ export default function LandingFormInput({ config }: ReactFormInputOptions) {
                         style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
                     >
                         <option value="coffee">Coffee Template</option>
+                        <option value="nightlight">Nightlight Template</option>
                         <option value="simple">Simple Template</option>
                         <option value="checkout_split">Checkout Split Template</option>
                     </select>
