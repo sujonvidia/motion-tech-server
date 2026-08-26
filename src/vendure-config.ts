@@ -52,6 +52,13 @@ export const config: VendureConfig = {
         port: Number(process.env.PORT) || 3000,
         adminApiPath: 'admin-api',
         shopApiPath: 'shop-api',
+        cors: {
+            origin: [
+                process.env.STOREFRONT_URL || 'https://motion-tech-nextjs-production.up.railway.app',
+                'http://localhost:3001',
+            ],
+            credentials: true,
+        },
         // The following options are useful in development mode,
         // but are best turned off for production for security
         // reasons.
