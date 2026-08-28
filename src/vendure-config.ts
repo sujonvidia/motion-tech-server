@@ -93,6 +93,7 @@ export const config: VendureConfig = {
         },
         cookieOptions: {
           secret: process.env.COOKIE_SECRET,
+          domain: process.env.COOKIE_DOMAIN,
         },
         // requireVerification: false,
         // sessionCacheStrategy: new NoopSessionCacheStrategy(),
